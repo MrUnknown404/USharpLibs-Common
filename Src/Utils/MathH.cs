@@ -14,5 +14,8 @@ namespace USharpLibs.Common.Utils {
 		public static int Round(float value) => (int)MathF.Round(value);
 		public static long Round(double value) => (long)Math.Round(value);
 		public static int Round(decimal value) => (int)Math.Round(value);
+		public static int Round(float value, MidpointRounding rounding) => (int)MathF.Round(value, rounding);
+		public static long Round(double value, MidpointRounding rounding) => (long)Math.Round(value, rounding);
+		public static int Round(decimal value, MidpointRounding rounding) => (int)Math.Round(value, rounding);
 	}
 }
