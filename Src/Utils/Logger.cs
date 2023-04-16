@@ -1,105 +1,109 @@
 using System.Diagnostics;
+using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Text;
+using JetBrains.Annotations;
 
 namespace USharpLibs.Common.Utils {
-	public sealed class Logger {
-		public const string None = "";
-		public const string Reset = "\u001B[0m";
-		public const string Black = "\u001B[30m";
-		public const string Red = "\u001B[31m";
-		public const string Green = "\u001B[32m";
-		public const string Yellow = "\u001B[33m";
-		public const string Blue = "\u001B[34m";
-		public const string Purple = "\u001B[35m";
-		public const string Cyan = "\u001B[36m";
-		public const string White = "\u001B[37m";
-
-		public static readonly Logger MinimalLogger = new();
-		public static readonly Logger DefaultLogger = new(LogLevel.Normal, "default");
-
-		private readonly string source = string.Empty;
-		private readonly LogLevel level = LogLevel.Minimal;
-
-		public Logger() { }
-
-		private Logger(LogLevel level, string source) {
-			this.level = level;
-			this.source = source;
-		}
-
-		public static Logger Normal(string source = "") => new(LogLevel.Normal, source);
-		public static Logger More(string source = "") => new(LogLevel.More, source);
-		public static Logger Maximum(string source = "") => new(LogLevel.Maximum, source);
+	[PublicAPI]
+	public static class Logger {
+		public static LogLevel LogLevel { get; set; } = LogLevel.Normal;
 
 		[MethodImpl(MethodImplOptions.NoInlining)]
-		public void WriteLine(string message, [CallerMemberName] string method = "???", [CallerLineNumber] int line = int.MinValue) => Console.WriteLine(Format(message, None, method, line));
-		[MethodImpl(MethodImplOptions.NoInlining)]
-		public void WarnLine(string message, [CallerMemberName] string method = "???", [CallerLineNumber] int line = int.MinValue) => Console.WriteLine(Format(message, Yellow, method, line));
-		[MethodImpl(MethodImplOptions.NoInlining)]
-		public void ErrorLine(string message, [CallerMemberName] string method = "???", [CallerLineNumber] int line = int.MinValue) => Console.Error.WriteLine(Format(message, Red, method, line));
+		public static void Info(string message, [CallerMemberName] string method = "???", [CallerLineNumber] int line = int.MinValue) => Console.WriteLine(Format(message, WarningLevel.Info, method, line));
 
 		[MethodImpl(MethodImplOptions.NoInlining)]
-		public void PrintException(Exception e) {
+		public static void Debug(string message, [CallerMemberName] string method = "???", [CallerLineNumber] int line = int.MinValue) => Console.WriteLine(Format(message, WarningLevel.Debug, method, line));
+
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		public static void Warn(string message, [CallerMemberName] string method = "???", [CallerLineNumber] int line = int.MinValue) => Console.WriteLine(Format(message, WarningLevel.Warning, method, line));
+
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		public static void Error(string message, [CallerMemberName] string method = "???", [CallerLineNumber] int line = int.MinValue) => Console.WriteLine(Format(message, WarningLevel.Error, method, line));
+
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		public static void Fatal(string message, [CallerMemberName] string method = "???", [CallerLineNumber] int line = int.MinValue) => Console.WriteLine(Format(message, WarningLevel.Fatal, method, line));
+
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		public static void PrintException(Exception e) {
 			Exception inner = e;
 			while (true) {
-				if (inner.InnerException != null) {
-					inner = inner.InnerException;
-				} else { break; }
+				if (inner.InnerException != null) { inner = inner.InnerException; } else { break; }
 			}
 
-			if (level == LogLevel.Minimal) {
-				Console.Error.WriteLine($"{GetStart(Red)} {inner.GetType().Name}: {inner.Message}");
+			if (LogLevel == LogLevel.Minimal) {
+				Console.Error.WriteLine($"[{DateTime.Now:HH:mm:ss:fff}] {inner.GetType().Name}: {inner.Message}");
 				return;
 			}
 
-			StackTrace trace = new(2, true);
-			StackFrame frame = trace.GetFrame(0) ?? throw new Exception();
-			string method = frame.GetMethod()?.Name ?? throw new Exception();
-
-			if (method == "<>c") { method = GetNamespace(trace.GetFrame(1) ?? throw new Exception()); }
-			if (method.Contains(".ctor")) { method = ".ctor"; }
-
-			if (level == LogLevel.Normal) {
-				Console.Error.WriteLine($"{GetStart(Red)} [{GetSource()}{method}.{GetLineNumber(frame.GetFileLineNumber())}] {inner.GetType().Name}: {inner.Message}");
-				return;
-			}
-
-			string @namespace = GetNamespace(frame);
-			if (@namespace == "<>c") { @namespace = GetNamespace(trace.GetFrame(1) ?? throw new Exception()); }
-
-			Console.Error.WriteLine($"{GetStart(Red)} [{GetSource()}{@namespace.Replace("+<>c", string.Empty)}.{method}.{GetLineNumber(frame.GetFileLineNumber())}] {inner.GetType().Name}: {inner.Message}");
+			StackFrame frame = new StackTrace(2, true).GetFrame(0) ?? throw new Exception();
+			Console.Error.WriteLine(LogLevel == LogLevel.Maximum
+					? $"[{DateTime.Now:HH:mm:ss:fff}] [{WarningLevel.Error}] [{GetMethodName(frame.GetMethod()?.ReflectedType?.FullName ?? throw new Exception())}.{frame.GetFileLineNumber()}] {inner.GetType().Name}: {inner.Message}"
+					: $"[{DateTime.Now:HH:mm:ss:fff}] [{WarningLevel.Error}] [{GetMethodName(frame.GetMethod()?.Name ?? throw new Exception())}.{frame.GetFileLineNumber()}] {inner.GetType().Name}: {inner.Message}");
 		}
 
 		[MethodImpl(MethodImplOptions.NoInlining)]
-		private string Format(string message, string color, string method, int line) {
-			if (level == LogLevel.Minimal) {
-				return $"{GetStart(color)} {message}";
-			} else {
-				if (level == LogLevel.Normal) { return $"{GetStart(color)} [{GetSource()}{method}.{GetLineNumber(line)}] {message}"; }
+		private static string Format(string message, WarningLevel warningLevel, string method, int line) =>
+				LogLevel switch {
+						LogLevel.Minimal => $"[{DateTime.Now:HH:mm:ss:fff}] {message}",
+						LogLevel.Maximum =>
+								$"[{DateTime.Now:HH:mm:ss:fff}] [{warningLevel}] [{(new StackTrace(2, false).GetFrame(0)?.GetMethod()?.ReflectedType?.FullName ?? throw new Exception()).Replace("+<>c", string.Empty)}.{line}] {message}",
+						_ => $"[{DateTime.Now:HH:mm:ss:fff}] [{warningLevel}] [{GetMethodName(method)}.{line}] {message}",
+				};
 
-				StackTrace trace = new(2, false);
-				StackFrame frame = trace.GetFrame(0) ?? throw new Exception();
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		private static string GetMethodName(string method) {
+			if (method is ".ctor" or ".cctor" || LogLevel > LogLevel.Normal) {
+				string @namespace = new StackTrace(3, false).GetFrame(0)?.GetMethod()?.ReflectedType?.FullName ?? throw new Exception();
+				return $"{@namespace[(@namespace.LastIndexOf('.') + 1)..].Replace("+<>c", string.Empty)}.{method}";
+			}
 
-				string @namespace = GetNamespace(frame);
-				if (@namespace == "<>c") { @namespace = GetNamespace(trace.GetFrame(1) ?? throw new Exception()); }
+			return method;
+		}
 
-				return $"{GetStart(color)} [{GetSource()}{@namespace.Replace("+<>c", string.Empty)}.{method}.{GetLineNumber(line)}] {message}";
+		public static void SetupDefaultLogFolder(ushort maxAmountOfLogs, string startupMessage = "") => SetupDefaultLogFolder(maxAmountOfLogs, null, startupMessage);
+
+		public static void SetupDefaultLogFolder(ushort maxAmountOfLogs, CreateNewOutput? createNewOutput, string startupMessage = "") {
+			const string LogDateFormat = "MM-dd-yyyy HH-mm-ss-fff";
+
+			string logsDirName = Directory.CreateDirectory("Logs").FullName;
+			LoggerWriter newOut = createNewOutput?.Invoke(Console.Out, new($"Logs\\{DateTime.Now.ToString(LogDateFormat)}.log", FileMode.Create)) ?? new(Console.Out,
+					new($"Logs\\{DateTime.Now.ToString(LogDateFormat)}.log", FileMode.Create));
+
+			Console.SetOut(newOut);
+			Console.SetError(newOut);
+			AppDomain.CurrentDomain.UnhandledException += (_, args) => PrintException((Exception)args.ExceptionObject);
+
+			if (startupMessage.Length != 0) { Info(startupMessage); }
+			Debug($"Logs -> {logsDirName}");
+
+			List<DateTime> dates = new();
+			foreach (string f in Directory.GetFiles("Logs")) {
+				if (f.EndsWith(".log") && f.Length == 32 && DateTime.TryParseExact(f[5..^4], LogDateFormat, null, DateTimeStyles.None, out DateTime time)) { dates.Add(time); }
+			}
+
+			if (dates.Count > maxAmountOfLogs) {
+				dates.Sort(DateTime.Compare);
+
+				Debug("Found too many log files. Deleting the oldest");
+				while (dates.Count > maxAmountOfLogs) {
+					File.Delete($"Logs\\{dates[0].ToString(LogDateFormat)}.log");
+					dates.RemoveAt(0);
+				}
 			}
 		}
 
-		private static string GetStart(string color) => $"{color}[{DateTime.Now:HH:mm:ss:fff}]";
-		private string GetNamespace(StackFrame frame) => level == LogLevel.More ? frame.GetMethod()?.DeclaringType?.Name ?? "???" : level == LogLevel.Maximum ? frame.GetMethod()?.DeclaringType?.FullName ?? "???" : throw new Exception($"Unknown logging level: {level}");
-		private string GetSource() => !string.IsNullOrWhiteSpace(source) ? $"{source}/" : string.Empty;
-		private static string GetLineNumber(int value) => value <= 0 ? "???" : value.ToString();
+		public delegate LoggerWriter CreateNewOutput(TextWriter oldOut, FileStream fileStream);
 	}
 
+	[PublicAPI]
 	public class LoggerWriter : StreamWriter {
 		public override Encoding Encoding => Encoding.UTF8;
 		private readonly TextWriter old;
 
 		public LoggerWriter(TextWriter old, FileStream file) : base(file) {
 			this.old = old;
+			// ReSharper disable once VirtualMemberCallInConstructor
 			AutoFlush = true;
 		}
 
@@ -304,5 +308,13 @@ namespace USharpLibs.Common.Utils {
 		Normal,
 		More,
 		Maximum,
+	}
+
+	public enum WarningLevel {
+		Debug = 0,
+		Info,
+		Warning,
+		Error,
+		Fatal,
 	}
 }

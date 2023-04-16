@@ -1,23 +1,22 @@
 using System.Diagnostics.CodeAnalysis;
+using JetBrains.Annotations;
 
 namespace USharpLibs.Common.Utils {
+	[PublicAPI]
 	public class Grid<T> {
 		public List<T?> RawGrid { get; protected set; }
 		public int Width { get; protected set; }
 		public int Height { get; protected set; }
 
 		public Grid(T? @default, int width, int height) {
-			RawGrid = new List<T?>(width * height);
+			RawGrid = new(width * height);
 			Width = width;
 			Height = height;
 
-			for (int i = 0; i < width * height; i++) {
-				RawGrid.Add(@default);
-			}
+			for (int i = 0; i < width * height; i++) { RawGrid.Add(@default); }
 		}
 
-		[SuppressMessage("IDE", "SA1313")]
-		public Grid(int width, int height) : this(default, width, height) { }
+		[SuppressMessage("IDE", "SA1313")] public Grid(int width, int height) : this(default, width, height) { }
 
 		public bool Is(Grid<T?> grid) {
 			if (grid.Width != Width || grid.Height != Height) { return false; }
@@ -32,7 +31,10 @@ namespace USharpLibs.Common.Utils {
 			return true;
 		}
 
-		public T? this[int x, int y] { get => RawGrid[x + (y * Width)]; set => RawGrid[x + (y * Width)] = value; }
+		public T? this[int x, int y] {
+			get => RawGrid[x + y * Width];
+			set => RawGrid[x + y * Width] = value;
+		}
 
 		public int Count() => RawGrid.Count;
 		public bool IsEmpty() => RawGrid.Count == 0;
