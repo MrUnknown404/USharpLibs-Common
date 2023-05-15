@@ -97,7 +97,7 @@ namespace USharpLibs.Common.Utils {
 	}
 
 	[PublicAPI]
-	public class LoggerWriter : StreamWriter {
+	public class LoggerWriter : StreamWriter { // I *think* i fixed this class? I didn't test every method tho
 		public override Encoding Encoding => Encoding.UTF8;
 		private readonly TextWriter old;
 
@@ -117,11 +117,6 @@ namespace USharpLibs.Common.Utils {
 			old.Write(value);
 		}
 
-		public override void Write(bool value) {
-			base.Write(value);
-			old.Write(value);
-		}
-
 		public override void Write(char value) {
 			base.Write(value);
 			old.Write(value);
@@ -135,31 +130,6 @@ namespace USharpLibs.Common.Utils {
 		public override void Write(char[]? buffer) {
 			base.Write(buffer);
 			old.Write(buffer);
-		}
-
-		public override void Write(decimal value) {
-			base.Write(value);
-			old.Write(value);
-		}
-
-		public override void Write(double value) {
-			base.Write(value);
-			old.Write(value);
-		}
-
-		public override void Write(float value) {
-			base.Write(value);
-			old.Write(value);
-		}
-
-		public override void Write(int value) {
-			base.Write(value);
-			old.Write(value);
-		}
-
-		public override void Write(long value) {
-			base.Write(value);
-			old.Write(value);
 		}
 
 		public override void Write(object? value) {
@@ -192,32 +162,12 @@ namespace USharpLibs.Common.Utils {
 			old.Write(value);
 		}
 
-		public override void Write(uint value) {
-			base.Write(value);
-			old.Write(value);
-		}
-
-		public override void Write(ulong value) {
-			base.Write(value);
-			old.Write(value);
-		}
-
-		public override void WriteLine() {
-			base.WriteLine();
-			old.WriteLine();
-		}
-
 		public override void WriteLine(ReadOnlySpan<char> buffer) {
 			base.WriteLine(buffer);
 			old.WriteLine(buffer);
 		}
 
 		public override void WriteLine(StringBuilder? value) {
-			base.WriteLine(value);
-			old.WriteLine(value);
-		}
-
-		public override void WriteLine(bool value) {
 			base.WriteLine(value);
 			old.WriteLine(value);
 		}
@@ -235,31 +185,6 @@ namespace USharpLibs.Common.Utils {
 		public override void WriteLine(char[]? buffer) {
 			base.WriteLine(buffer);
 			old.WriteLine(buffer);
-		}
-
-		public override void WriteLine(decimal value) {
-			base.WriteLine(value);
-			old.WriteLine(value);
-		}
-
-		public override void WriteLine(double value) {
-			base.WriteLine(value);
-			old.WriteLine(value);
-		}
-
-		public override void WriteLine(float value) {
-			base.WriteLine(value);
-			old.WriteLine(value);
-		}
-
-		public override void WriteLine(int value) {
-			base.WriteLine(value);
-			old.WriteLine(value);
-		}
-
-		public override void WriteLine(long value) {
-			base.WriteLine(value);
-			old.WriteLine(value);
 		}
 
 		public override void WriteLine(object? value) {
@@ -288,16 +213,6 @@ namespace USharpLibs.Common.Utils {
 		}
 
 		public override void WriteLine(string? value) {
-			base.WriteLine(value);
-			old.WriteLine(value);
-		}
-
-		public override void WriteLine(uint value) {
-			base.WriteLine(value);
-			old.WriteLine(value);
-		}
-
-		public override void WriteLine(ulong value) {
 			base.WriteLine(value);
 			old.WriteLine(value);
 		}
