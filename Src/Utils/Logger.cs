@@ -132,11 +132,6 @@ namespace USharpLibs.Common.Utils {
 			old.Write(buffer);
 		}
 
-		public override void Write(object? value) {
-			base.Write(value);
-			old.Write(value);
-		}
-
 		public override void Write(string format, object? arg0) {
 			base.Write(format, arg0);
 			old.Write(format, arg0);
@@ -185,11 +180,6 @@ namespace USharpLibs.Common.Utils {
 		public override void WriteLine(char[]? buffer) {
 			base.WriteLine(buffer);
 			old.WriteLine(buffer);
-		}
-
-		public override void WriteLine(object? value) {
-			base.WriteLine(value);
-			old.WriteLine(value);
 		}
 
 		public override void WriteLine(string format, object? arg0) {
