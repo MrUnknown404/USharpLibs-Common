@@ -3,7 +3,8 @@ using JetBrains.Annotations;
 namespace USharpLibs.Common.Utils {
 	[PublicAPI]
 	public static class MathH {
-		public const float Sqrt3 = 1.73205080757f; // MathF.Sqrt(3)
+		public const float Sqrt2 = 1.41421356237f;
+		public const float Sqrt3 = 1.73205080757f;
 		public const float HalfSqrt3 = Sqrt3 / 2f;
 
 		[Pure] public static double ToRadians(double degrees) => degrees * Math.PI / 180d;
