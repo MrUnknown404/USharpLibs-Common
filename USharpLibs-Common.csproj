@@ -3,7 +3,6 @@
 		<TargetFramework>net6.0</TargetFramework>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
-		<NoWarn>SA0001</NoWarn>
 		<RootNamespace>USharpLibs.Common</RootNamespace>
 		<OutputType>Library</OutputType>
 	</PropertyGroup>
