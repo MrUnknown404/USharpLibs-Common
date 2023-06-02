@@ -29,5 +29,39 @@ namespace USharpLibs.Common.Utils {
 
 		[Pure] public static float Lerp(float from, float to, float alpha) => from * (1f - alpha) + to * alpha;
 		[Pure] public static double Lerp(double from, double to, double alpha) => from * (1d - alpha) + to * alpha;
+
+		[Pure] public static ushort BytesToUShort(byte byte0, byte byte1) => (ushort)((byte0 << 8) + byte1);
+		[Pure] public static short BytesToShort(byte byte0, byte byte1) => (short)((byte0 << 8) + byte1);
+
+		[Pure]
+		public static void UShortToBytes(ushort value, out byte byte0, out byte byte1) {
+			byte0 = (byte)((value >> 8) & byte.MaxValue);
+			byte1 = (byte)(value & byte.MaxValue);
+		}
+
+		[Pure]
+		public static void ShortToBytes(short value, out byte byte0, out byte byte1) {
+			byte0 = (byte)((value >> 8) & byte.MaxValue);
+			byte1 = (byte)(value & byte.MaxValue);
+		}
+
+		[Pure] public static uint BytesToUInt(byte byte0, byte byte1, byte byte2, byte byte3) => (uint)((byte0 << 24) + (byte1 << 16) + (byte2 << 8) + byte3);
+		[Pure] public static int BytesToInt(byte byte0, byte byte1, byte byte2, byte byte3) => (byte0 << 24) + (byte1 << 16) + (byte2 << 8) + byte3;
+
+		[Pure]
+		public static void UIntToBytes(uint value, out byte byte0, out byte byte1, out byte byte2, out byte byte3) {
+			byte0 = (byte)(value >> 24);
+			byte1 = (byte)(value >> 16);
+			byte2 = (byte)(value >> 8);
+			byte3 = (byte)value;
+		}
+
+		[Pure]
+		public static void IntToBytes(int value, out byte byte0, out byte byte1, out byte byte2, out byte byte3) {
+			byte0 = (byte)(value >> 24);
+			byte1 = (byte)(value >> 16);
+			byte2 = (byte)(value >> 8);
+			byte3 = (byte)value;
+		}
 	}
 }
