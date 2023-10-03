@@ -5,6 +5,7 @@
 		<Nullable>enable</Nullable>
 		<RootNamespace>USharpLibs.Common</RootNamespace>
 		<OutputType>Library</OutputType>
+		<DebugType>embedded</DebugType>
 	</PropertyGroup>
 
 	<ItemGroup>
