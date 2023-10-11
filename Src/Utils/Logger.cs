@@ -67,8 +67,8 @@ namespace USharpLibs.Common.Utils {
 			const string LogDateFormat = "MM-dd-yyyy HH-mm-ss-fff";
 
 			string logsDirName = Directory.CreateDirectory("Logs").FullName;
-			LoggerWriter newOut = createNewOutput?.Invoke(Console.Out, new($"Logs\\{DateTime.Now.ToString(LogDateFormat)}.log", FileMode.Create)) ?? new(Console.Out,
-					new($"Logs\\{DateTime.Now.ToString(LogDateFormat)}.log", FileMode.Create));
+			LoggerWriter newOut = createNewOutput?.Invoke(Console.Out, new($"Logs/{DateTime.Now.ToString(LogDateFormat)}.log", FileMode.Create)) ?? new(Console.Out,
+					new($"Logs/{DateTime.Now.ToString(LogDateFormat)}.log", FileMode.Create));
 
 			Console.SetOut(newOut);
 			Console.SetError(newOut);
