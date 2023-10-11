@@ -12,7 +12,7 @@ namespace USharpLibs.Common.Utils {
 	public static class DictionaryExtension {
 		[MustUseReturnValue]
 		public static V ComputeIfAbsent<K, V>(this Dictionary<K, V> self, K key, Func<K, V> compute) where K : notnull {
-			if (self.ContainsKey(key)) { return self[key]; }
+			if (self.TryGetValue(key, out V? absent)) { return absent; }
 
 			V value = compute(key);
 			self.Add(key, value);
