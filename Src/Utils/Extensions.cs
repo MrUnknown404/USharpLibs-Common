@@ -19,9 +19,7 @@ namespace USharpLibs.Common.Utils {
 			return value;
 		}
 
-		[MustUseReturnValue]
-		public static V? ComputeIfPresent<K, V>(this Dictionary<K, V> self, K key, Func<K, V, V> compute) where K : notnull =>
-				self.ContainsKey(key) ? self[key] = compute(key, self[key]) : default;
+		[MustUseReturnValue] public static V? ComputeIfPresent<K, V>(this Dictionary<K, V> self, K key, Func<K, V, V> compute) where K : notnull => self.TryGetValue(key, out V? value) ? self[key] = compute(key, value) : default;
 
 		[MustUseReturnValue]
 		public static V? ComputeForBoth<K, V>(this Dictionary<K, V> self, K key, Func<K, V, V> ifPresent, Func<K, V> ifMissing) where K : notnull =>

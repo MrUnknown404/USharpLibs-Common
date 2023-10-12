@@ -1,6 +1,7 @@
 using JetBrains.Annotations;
 
-namespace USharpLibs.Common.Utils {
+namespace USharpLibs.Common.Math {
+	// TODO redo this way nicer
 	public enum Trilean {
 		Unknown = 0,
 		True = 2,

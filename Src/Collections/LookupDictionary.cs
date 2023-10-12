@@ -1,6 +1,6 @@
 using JetBrains.Annotations;
 
-namespace USharpLibs.Common.Utils {
+namespace USharpLibs.Common.Collections {
 	[PublicAPI]
 	public class LookupDictionary<K, L, V> where K : notnull where L : notnull {
 		private Dictionary<K, V> ValueDict { get; } = new();

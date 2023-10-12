@@ -4,7 +4,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using JetBrains.Annotations;
 
-namespace USharpLibs.Common.Utils {
+namespace USharpLibs.Common.IO {
 	[PublicAPI]
 	public static class Logger {
 		public static LogLevel LogLevel { get; set; } = LogLevel.Normal;
