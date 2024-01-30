@@ -23,7 +23,7 @@ namespace USharpLibs.Common.Collections {
 			for (int y = 0; y < Height; y++) {
 				for (int x = 0; x < Width; x++) {
 					T? g0 = this[x, y], g1 = grid[x, y];
-					if ((g0 == null && g1 != null) || (g0 != null && !g0.Equals(g1))) { return false; }
+					if (g0 == null && g1 != null || g0 != null && !g0.Equals(g1)) { return false; }
 				}
 			}
 

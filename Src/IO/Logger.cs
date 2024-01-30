@@ -36,10 +36,10 @@ namespace USharpLibs.Common.IO {
 				return;
 			}
 
-			StackFrame frame = new StackTrace(2, true).GetFrame(0) ?? throw new Exception();
+			StackFrame frame = new StackTrace(2, true).GetFrame(0) ?? throw new();
 			Console.Error.WriteLine(LogLevel == LogLevel.Maximum
-					? $"[{DateTime.Now:HH:mm:ss:fff}] [{WarningLevel.Error}] [{GetMethodName(frame.GetMethod()?.ReflectedType?.FullName ?? throw new Exception())}.{frame.GetFileLineNumber()}] {inner.GetType().Name}: {inner.Message}"
-					: $"[{DateTime.Now:HH:mm:ss:fff}] [{WarningLevel.Error}] [{GetMethodName(frame.GetMethod()?.Name ?? throw new Exception())}.{frame.GetFileLineNumber()}] {inner.GetType().Name}: {inner.Message}");
+					? $"[{DateTime.Now:HH:mm:ss:fff}] [{WarningLevel.Error}] [{GetMethodName(frame.GetMethod()?.ReflectedType?.FullName ?? throw new())}.{frame.GetFileLineNumber()}] {inner.GetType().Name}: {inner.Message}"
+					: $"[{DateTime.Now:HH:mm:ss:fff}] [{WarningLevel.Error}] [{GetMethodName(frame.GetMethod()?.Name ?? throw new())}.{frame.GetFileLineNumber()}] {inner.GetType().Name}: {inner.Message}");
 		}
 
 		[MethodImpl(MethodImplOptions.NoInlining)]
@@ -47,14 +47,14 @@ namespace USharpLibs.Common.IO {
 				LogLevel switch {
 						LogLevel.Minimal => $"[{DateTime.Now:HH:mm:ss:fff}] {message}",
 						LogLevel.Maximum =>
-								$"[{DateTime.Now:HH:mm:ss:fff}] [{warningLevel}] [{(new StackTrace(2, false).GetFrame(0)?.GetMethod()?.ReflectedType?.FullName ?? throw new Exception()).Replace("+<>c", string.Empty)}.{line}] {message}",
+								$"[{DateTime.Now:HH:mm:ss:fff}] [{warningLevel}] [{(new StackTrace(2, false).GetFrame(0)?.GetMethod()?.ReflectedType?.FullName ?? throw new()).Replace("+<>c", string.Empty)}.{line}] {message}",
 						_ => $"[{DateTime.Now:HH:mm:ss:fff}] [{warningLevel}] [{GetMethodName(method)}.{line}] {message}",
 				};
 
 		[MethodImpl(MethodImplOptions.NoInlining)]
 		private static string GetMethodName(string method) {
 			if (method is ".ctor" or ".cctor" || LogLevel > LogLevel.Normal) {
-				string @namespace = new StackTrace(3, false).GetFrame(0)?.GetMethod()?.ReflectedType?.FullName ?? throw new Exception();
+				string @namespace = new StackTrace(3, false).GetFrame(0)?.GetMethod()?.ReflectedType?.FullName ?? throw new();
 				return $"{@namespace[(@namespace.LastIndexOf('.') + 1)..].Replace("+<>c", string.Empty)}.{method}";
 			}
 
