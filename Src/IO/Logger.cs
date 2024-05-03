@@ -1,221 +1,299 @@
 using System.Diagnostics;
 using System.Globalization;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
 using JetBrains.Annotations;
 
 namespace USharpLibs.Common.IO {
+	/// <summary>
+	/// This is Attempt #3 at a decent logging utility class. So far, this one works the best. <br/>
+	/// Call <see cref="Init(string)"/> to enable extra logging.
+	/// </summary>
+	/// <remarks> Check the class's static variables for settings. </remarks>
 	[PublicAPI]
 	public static class Logger {
-		public static LogLevel LogLevel { get; set; } = LogLevel.Normal;
+		private static bool createLogFile = true;
+		private static ushort maxLogFiles = 5;
+		private static string logDirectory = string.Empty;
+
+		/// <summary> Whether or not the logger should automatically create log files. </summary>
+		public static bool CreateLogFile {
+			private get => createLogFile;
+			set {
+				if (wasInitRun) { Warn("Updating CreateLogFile after #Init was called will do nothing."); }
+				createLogFile = value;
+			}
+		}
+
+		/// <summary> The amount of log files to keep if <see cref="CreateLogFile"/> is true. If false, this does nothing. </summary>
+		public static ushort MaxLogFiles {
+			private get => maxLogFiles;
+			set {
+				if (wasInitRun) { Warn("Updating MaxLogFiles after #Init was called will do nothing."); }
+				maxLogFiles = value;
+			}
+		}
+
+		/// <summary> The absolute directory for the logs folder. This is only generated if <see cref="CreateLogFile"/> is true. If false, this will not be null, only empty. </summary>
+		public static string LogDirectory {
+			get {
+				if (!wasInitRun) { Warn("LogDirectory cannot be called for before #Init is called."); }
+				return logDirectory;
+			}
+			private set => logDirectory = value;
+		}
+
+		/// <summary> Whether or not to include the current time in the formatted log prefix. </summary>
+		public static bool PrintTimeStamp { private get; set; } = true;
+		/// <summary> Whether or not to include the severity level in the formatted log prefix. </summary>
+		public static bool PrintSeverity { private get; set; } = true;
+		/// <summary> Whether or not to include the thread name in the formatted log prefix. </summary>
+		public static bool PrintThreadName { private get; set; }
+
+		/// <summary> Whether or not to include the namespace in the formatted log prefix. </summary>
+		public static bool PrintNamespace { private get; set; }
+		/// <summary> Whether or not to include the class name in the formatted log prefix. </summary>
+		public static bool PrintClass { private get; set; } = true;
+		/// <summary> Whether or not to include the method name in the formatted log prefix. </summary>
+		public static bool PrintMethod { private get; set; } = true;
+		/// <summary> Whether or not to include the line number in the formatted log prefix. </summary>
+		public static bool PrintLine { private get; set; } = true;
+
+		private static LoggerWritter? loggerWritter;
+		private static bool wasInitRun;
+
+		public static void Init(string startingMessage = "") {
+			const string LogDateFormat = "MM-dd-yyyy HH-mm-ss-fff";
+
+			if (CreateLogFile) { LogDirectory = Directory.CreateDirectory("Logs").FullName; }
+
+			loggerWritter = new(Console.Out, new FileStream($"Logs/{DateTime.Now.ToString(LogDateFormat)}.log", FileMode.Create));
+			Console.SetOut(loggerWritter);
+			Console.SetError(loggerWritter);
+			AppDomain.CurrentDomain.UnhandledException += (_, args) => PrintException((Exception)args.ExceptionObject, 5);
+
+			if (!string.IsNullOrEmpty(startingMessage)) { Info(startingMessage); }
+
+			if (CreateLogFile) {
+				List<DateTime> dates = new();
+				foreach (string f in Directory.GetFiles("Logs")) {
+					if (f.EndsWith(".log") && f.Length == 32 && DateTime.TryParseExact(f[5..^4], LogDateFormat, null, DateTimeStyles.None, out DateTime time)) { dates.Add(time); }
+				}
+
+				if (dates.Count > MaxLogFiles) {
+					dates.Sort(DateTime.Compare);
+
+					Debug("Found too many log files. Deleting the oldest");
+					while (dates.Count > MaxLogFiles) {
+						File.Delete($"Logs\\{dates[0].ToString(LogDateFormat)}.log");
+						dates.RemoveAt(0);
+					}
+				}
+			}
+
+			wasInitRun = true;
+		}
+
+		// Most of this below could be simplified. but idc
 
 		[MethodImpl(MethodImplOptions.NoInlining)]
-		public static void Info(string message, [CallerMemberName] string method = "???", [CallerLineNumber] int line = int.MinValue) => Console.WriteLine(Format(message, WarningLevel.Info, method, line));
+		public static void PrintException(Exception e) => PrintException(e, 5);
 
 		[MethodImpl(MethodImplOptions.NoInlining)]
-		public static void Debug(string message, [CallerMemberName] string method = "???", [CallerLineNumber] int line = int.MinValue) => Console.WriteLine(Format(message, WarningLevel.Debug, method, line));
-
-		[MethodImpl(MethodImplOptions.NoInlining)]
-		public static void Warn(string message, [CallerMemberName] string method = "???", [CallerLineNumber] int line = int.MinValue) => Console.WriteLine(Format(message, WarningLevel.Warning, method, line));
-
-		[MethodImpl(MethodImplOptions.NoInlining)]
-		public static void Error(string message, [CallerMemberName] string method = "???", [CallerLineNumber] int line = int.MinValue) => Console.WriteLine(Format(message, WarningLevel.Error, method, line));
-
-		[MethodImpl(MethodImplOptions.NoInlining)]
-		public static void Fatal(string message, [CallerMemberName] string method = "???", [CallerLineNumber] int line = int.MinValue) => Console.WriteLine(Format(message, WarningLevel.Fatal, method, line));
-
-		[MethodImpl(MethodImplOptions.NoInlining)]
-		public static void PrintException(Exception e) {
+		private static void PrintException(Exception e, byte stackTraceLevel) {
 			Exception inner = e;
 			while (true) {
 				if (inner.InnerException != null) { inner = inner.InnerException; } else { break; }
 			}
 
-			if (LogLevel == LogLevel.Minimal) {
-				Console.Error.WriteLine($"[{DateTime.Now:HH:mm:ss:fff}] {inner.GetType().Name}: {inner.Message}");
+			// TODO make my own cleaner version of StackTrace#ToString
+			Error($"{inner.GetType().Name}: {inner.Message} \n{new StackTrace(1, true)}", stackTraceLevel);
+		}
+
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		public static void Debug(object? obj) => Debug(obj?.ToString(), 4);
+
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		public static void Debug(string? message) => Debug(message, 4);
+
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		private static void Debug(string? message, byte stackTraceLevel) {
+			if (loggerWritter == null) {
+				Console.WriteLine(message);
 				return;
 			}
 
-			StackFrame frame = new StackTrace(2, true).GetFrame(0) ?? throw new();
-			Console.Error.WriteLine(LogLevel == LogLevel.Maximum
-					? $"[{DateTime.Now:HH:mm:ss:fff}] [{WarningLevel.Error}] [{GetMethodName(frame.GetMethod()?.ReflectedType?.FullName ?? throw new())}.{frame.GetFileLineNumber()}] {inner.GetType().Name}: {inner.Message}"
-					: $"[{DateTime.Now:HH:mm:ss:fff}] [{WarningLevel.Error}] [{GetMethodName(frame.GetMethod()?.Name ?? throw new())}.{frame.GetFileLineNumber()}] {inner.GetType().Name}: {inner.Message}");
+			loggerWritter.WriteLine(WarningLevel.Debug, message, stackTraceLevel);
 		}
 
 		[MethodImpl(MethodImplOptions.NoInlining)]
-		private static string Format(string message, WarningLevel warningLevel, string method, int line) =>
-				LogLevel switch {
-						LogLevel.Minimal => $"[{DateTime.Now:HH:mm:ss:fff}] {message}",
-						LogLevel.Maximum =>
-								$"[{DateTime.Now:HH:mm:ss:fff}] [{warningLevel}] [{(new StackTrace(2, false).GetFrame(0)?.GetMethod()?.ReflectedType?.FullName ?? throw new()).Replace("+<>c", string.Empty)}.{line}] {message}",
-						_ => $"[{DateTime.Now:HH:mm:ss:fff}] [{warningLevel}] [{GetMethodName(method)}.{line}] {message}",
-				};
+		public static void Info(object? obj) => Info(obj?.ToString(), 4);
 
 		[MethodImpl(MethodImplOptions.NoInlining)]
-		private static string GetMethodName(string method) {
-			if (method is ".ctor" or ".cctor" || LogLevel > LogLevel.Normal) {
-				string @namespace = new StackTrace(3, false).GetFrame(0)?.GetMethod()?.ReflectedType?.FullName ?? throw new();
-				return $"{@namespace[(@namespace.LastIndexOf('.') + 1)..].Replace("+<>c", string.Empty)}.{method}";
+		public static void Info(string? message) => Info(message, 4);
+
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		private static void Info(string? message, byte stackTraceLevel) {
+			if (loggerWritter == null) {
+				Console.WriteLine(message);
+				return;
 			}
 
-			return method;
+			loggerWritter.WriteLine(WarningLevel.Info, message, stackTraceLevel);
 		}
 
-		public static void SetupDefaultLogFolder(ushort maxAmountOfLogs, string startupMessage = "") => SetupDefaultLogFolder(maxAmountOfLogs, null, startupMessage);
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		public static void Warn(object? obj) => Warn(obj?.ToString(), 4);
 
-		public static void SetupDefaultLogFolder(ushort maxAmountOfLogs, CreateNewOutput? createNewOutput, string startupMessage = "") {
-			const string LogDateFormat = "MM-dd-yyyy HH-mm-ss-fff";
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		public static void Warn(string? message) => Warn(message, 4);
 
-			string logsDirName = Directory.CreateDirectory("Logs").FullName;
-			LoggerWriter newOut = createNewOutput?.Invoke(Console.Out, new($"Logs/{DateTime.Now.ToString(LogDateFormat)}.log", FileMode.Create)) ?? new(Console.Out,
-					new($"Logs/{DateTime.Now.ToString(LogDateFormat)}.log", FileMode.Create));
-
-			Console.SetOut(newOut);
-			Console.SetError(newOut);
-			AppDomain.CurrentDomain.UnhandledException += (_, args) => PrintException((Exception)args.ExceptionObject);
-
-			if (startupMessage.Length != 0) { Info(startupMessage); }
-			Debug($"Logs -> {logsDirName}");
-
-			List<DateTime> dates = new();
-			foreach (string f in Directory.GetFiles("Logs")) {
-				if (f.EndsWith(".log") && f.Length == 32 && DateTime.TryParseExact(f[5..^4], LogDateFormat, null, DateTimeStyles.None, out DateTime time)) { dates.Add(time); }
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		private static void Warn(string? message, byte stackTraceLevel) {
+			if (loggerWritter == null) {
+				Console.WriteLine(message);
+				return;
 			}
 
-			if (dates.Count > maxAmountOfLogs) {
-				dates.Sort(DateTime.Compare);
+			loggerWritter.WriteLine(WarningLevel.Warning, message, stackTraceLevel);
+		}
 
-				Debug("Found too many log files. Deleting the oldest");
-				while (dates.Count > maxAmountOfLogs) {
-					File.Delete($"Logs\\{dates[0].ToString(LogDateFormat)}.log");
-					dates.RemoveAt(0);
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		public static void Error(object? obj) => Error(obj?.ToString(), 4);
+
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		public static void Error(string? message) => Error(message, 4);
+
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		private static void Error(string? message, byte stackTraceLevel) {
+			if (loggerWritter == null) {
+				Console.WriteLine(message);
+				return;
+			}
+
+			loggerWritter.WriteLine(WarningLevel.Error, message, stackTraceLevel);
+		}
+
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		public static void Fatal(object? obj) => Fatal(obj?.ToString(), 4);
+
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		public static void Fatal(string? message) => Fatal(message, 4);
+
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		private static void Fatal(string? message, byte stackTraceLevel) {
+			if (loggerWritter == null) {
+				Console.WriteLine(message);
+				return;
+			}
+
+			loggerWritter.WriteLine(WarningLevel.Fatal, message, stackTraceLevel);
+		}
+
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		private static string AddPrefix(WarningLevel level, string? message, byte stackTraceLevel = 5) {
+			StringBuilder sb = new();
+			if (PrintTimeStamp) { sb.Append($"[{DateTime.Now:HH:mm:ss:fff}] "); }
+			if (PrintSeverity) { sb.Append($"[{level}] "); }
+			if (PrintThreadName) {
+				string? threadName = Thread.CurrentThread.Name;
+				sb.Append($"{(string.IsNullOrEmpty(threadName) ? string.Empty : $"[{threadName}] ")}");
+			}
+
+			if (PrintNamespace || PrintClass || PrintMethod || PrintLine) {
+				StackFrame frame = new StackTrace(stackTraceLevel, PrintLine).GetFrame(0) ?? throw new NullReferenceException();
+				MethodBase method = frame.GetMethod() ?? throw new NullReferenceException();
+				Type reflectedType = method.ReflectedType ?? throw new NullReferenceException();
+
+				sb.Append('[');
+
+				if (PrintNamespace) { sb.Append(reflectedType.Namespace ?? throw new NullReferenceException()); }
+
+				if (PrintClass) {
+					if (PrintNamespace) { sb.Append('.'); }
+
+					string className = reflectedType.Name ?? throw new NullReferenceException();
+					if (className.Contains("<>c")) { className = reflectedType.ReflectedType?.Name ?? throw new NullReferenceException(); }
+					if (className.Contains('`')) { className = className[..className.IndexOf('`')]; }
+					sb.Append(className);
 				}
+
+				if (PrintMethod) {
+					if (PrintNamespace || PrintClass) { sb.Append('.'); }
+
+					string methodName = method.Name ?? throw new NullReferenceException();
+					if (methodName.StartsWith('<')) { methodName = methodName[1..methodName.IndexOf('>')]; }
+					if (methodName.Contains(".ctor")) { methodName = methodName.Replace(".ctor", "ctor"); }
+					sb.Append(methodName);
+				}
+
+				if (PrintLine) {
+					if (PrintNamespace || PrintClass || PrintMethod) { sb.Append('.'); }
+					sb.Append(frame.GetFileLineNumber());
+				}
+
+				sb.Append("] ");
 			}
+
+			return sb.Append(message ?? string.Empty).ToString();
 		}
 
-		public delegate LoggerWriter CreateNewOutput(TextWriter oldOut, FileStream fileStream);
-	}
+		private sealed class LoggerWritter : StreamWriter {
+			public override Encoding Encoding => Encoding.UTF8;
+			private readonly TextWriter console;
 
-	[PublicAPI]
-	public class LoggerWriter : StreamWriter { // I *think* i fixed this class? I didn't test every method tho
-		public override Encoding Encoding => Encoding.UTF8;
-		private readonly TextWriter old;
+			public LoggerWritter(TextWriter console, Stream file) : base(file) {
+				this.console = console;
+				AutoFlush = true;
+			}
 
-		public LoggerWriter(TextWriter old, FileStream file) : base(file) {
-			this.old = old;
-			// ReSharper disable once VirtualMemberCallInConstructor
-			AutoFlush = true;
-		}
+			[MethodImpl(MethodImplOptions.NoInlining)]
+			public void WriteLine(WarningLevel level, string? value, byte stackTracelevel = 5) {
+				string newString = AddPrefix(level, value, stackTracelevel);
 
-		public override void Write(ReadOnlySpan<char> buffer) {
-			base.Write(buffer);
-			old.Write(buffer);
-		}
+				if (CreateLogFile) { base.WriteLine(newString); }
+				console.WriteLine(newString);
+			}
 
-		public override void Write(StringBuilder? value) {
-			base.Write(value);
-			old.Write(value);
-		}
+			// I think I got everything?
 
-		public override void Write(char value) {
-			base.Write(value);
-			old.Write(value);
-		}
+			[MethodImpl(MethodImplOptions.NoInlining)]
+			public override void WriteLine(string? value) => WriteLine(WarningLevel.Debug, value);
 
-		public override void Write(char[] buffer, int index, int count) {
-			base.Write(buffer, index, count);
-			old.Write(buffer, index, count);
-		}
+			[MethodImpl(MethodImplOptions.NoInlining)]
+			public override void WriteLine(char value) => WriteLine(WarningLevel.Debug, value.ToString());
 
-		public override void Write(char[]? buffer) {
-			base.Write(buffer);
-			old.Write(buffer);
-		}
+			[MethodImpl(MethodImplOptions.NoInlining)]
+			public override void WriteLine(char[]? buffer) => WriteLine(WarningLevel.Debug, new string(buffer));
 
-		public override void Write(string format, object? arg0) {
-			base.Write(format, arg0);
-			old.Write(format, arg0);
-		}
+			[MethodImpl(MethodImplOptions.NoInlining)]
+			public override void WriteLine(bool value) => WriteLine(WarningLevel.Debug, value.ToString());
 
-		public override void Write(string format, object? arg0, object? arg1) {
-			base.Write(format, arg0, arg1);
-			old.Write(format, arg0, arg1);
-		}
+			[MethodImpl(MethodImplOptions.NoInlining)]
+			public override void WriteLine(float value) => WriteLine(WarningLevel.Debug, value.ToString(CultureInfo.CurrentCulture));
 
-		public override void Write(string format, object? arg0, object? arg1, object? arg2) {
-			base.Write(format, arg0, arg1, arg2);
-			old.Write(format, arg0, arg1, arg2);
-		}
+			[MethodImpl(MethodImplOptions.NoInlining)]
+			public override void WriteLine(double value) => WriteLine(WarningLevel.Debug, value.ToString(CultureInfo.CurrentCulture));
 
-		public override void Write(string format, params object?[] arg) {
-			base.Write(format, arg);
-			old.Write(format, arg);
-		}
+			[MethodImpl(MethodImplOptions.NoInlining)]
+			public override void WriteLine(decimal value) => WriteLine(WarningLevel.Debug, value.ToString(CultureInfo.CurrentCulture));
 
-		public override void Write(string? value) {
-			base.Write(value);
-			old.Write(value);
-		}
+			[MethodImpl(MethodImplOptions.NoInlining)]
+			public override void WriteLine(int value) => WriteLine(WarningLevel.Debug, value.ToString());
 
-		public override void WriteLine(ReadOnlySpan<char> buffer) {
-			base.WriteLine(buffer);
-			old.WriteLine(buffer);
-		}
+			[MethodImpl(MethodImplOptions.NoInlining)]
+			public override void WriteLine(long value) => WriteLine(WarningLevel.Debug, value.ToString());
 
-		public override void WriteLine(StringBuilder? value) {
-			base.WriteLine(value);
-			old.WriteLine(value);
-		}
+			[MethodImpl(MethodImplOptions.NoInlining)]
+			public override void WriteLine(uint value) => WriteLine(WarningLevel.Debug, value.ToString());
 
-		public override void WriteLine(char value) {
-			base.WriteLine(value);
-			old.WriteLine(value);
-		}
-
-		public override void WriteLine(char[] buffer, int index, int count) {
-			base.WriteLine(buffer, index, count);
-			old.WriteLine(buffer, index, count);
-		}
-
-		public override void WriteLine(char[]? buffer) {
-			base.WriteLine(buffer);
-			old.WriteLine(buffer);
-		}
-
-		public override void WriteLine(string format, object? arg0) {
-			base.WriteLine(format, arg0);
-			old.WriteLine(format, arg0);
-		}
-
-		public override void WriteLine(string format, object? arg0, object? arg1) {
-			base.WriteLine(format, arg0, arg1);
-			old.WriteLine(format, arg0, arg1);
-		}
-
-		public override void WriteLine(string format, object? arg0, object? arg1, object? arg2) {
-			base.WriteLine(format, arg0, arg1, arg2);
-			old.WriteLine(format, arg0, arg1, arg2);
-		}
-
-		public override void WriteLine(string format, params object?[] arg) {
-			base.WriteLine(format, arg);
-			old.WriteLine(format, arg);
-		}
-
-		public override void WriteLine(string? value) {
-			base.WriteLine(value);
-			old.WriteLine(value);
+			[MethodImpl(MethodImplOptions.NoInlining)]
+			public override void WriteLine(ulong value) => WriteLine(WarningLevel.Debug, value.ToString());
 		}
 	}
 
-	public enum LogLevel {
-		Minimal = 0,
-		Normal,
-		More,
-		Maximum,
-	}
-
-	public enum WarningLevel {
+	public enum WarningLevel : byte {
 		Debug = 0,
 		Info,
 		Warning,
