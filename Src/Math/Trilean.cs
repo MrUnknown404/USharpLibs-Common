@@ -2,7 +2,7 @@ using JetBrains.Annotations;
 
 namespace USharpLibs.Common.Math {
 	// TODO redo this way nicer
-	public enum Trilean {
+	public enum Trilean : byte {
 		Unknown = 0,
 		True = 2,
 		False = 1,

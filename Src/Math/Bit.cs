@@ -4,13 +4,13 @@ using JetBrains.Annotations;
 namespace USharpLibs.Common.Math {
 	[PublicAPI]
 	[StructLayout(LayoutKind.Sequential)]
-	public readonly struct Bit : IEquatable<Bit>, IComparable<Bit> {
-		private bool Value { get; }
+	public readonly record struct Bit : IComparable<Bit> {
+		public static Bit Zero => 0;
+		public static Bit One => 1;
+		public static Bit False => false;
+		public static Bit True => true;
 
-		private static Bit Zero => 0;
-		private static Bit One => 1;
-		private static Bit False => Zero;
-		private static Bit True => One;
+		private bool Value { get; }
 
 		public Bit(bool value) => Value = value;
 
@@ -39,15 +39,9 @@ namespace USharpLibs.Common.Math {
 		public static bool operator true(Bit value) => value.Value;
 		public static bool operator false(Bit value) => value.Value;
 
-		public static bool operator ==(Bit left, Bit right) => left.Equals(right);
-		public static bool operator !=(Bit left, Bit right) => !left.Equals(right);
-
-		public bool Equals(Bit other) => Value == other.Value;
 		public int CompareTo(Bit other) => Value.CompareTo(other.Value);
 
-		public override bool Equals(object? obj) => obj is Bit other && Equals(other);
 		public override int GetHashCode() => Value.GetHashCode();
-
 		public override string ToString() => Value.ToString();
 	}
 }
