@@ -13,6 +13,33 @@ namespace USharpLibs.Common.IO {
 	/// <remarks> Check the class's static variables for settings. </remarks>
 	[PublicAPI]
 	public static class Logger {
+		public const string EscapeCode = "\x1b";
+		public const string Foreground = "38;5;";
+		public const string Background = "48;5;";
+
+		public const string Reset = $"{EscapeCode}[0m";
+		public const string Bold = $"{EscapeCode}[1m";
+		public const string Italic = $"{EscapeCode}[3m";
+		public const string Underline = $"{EscapeCode}[4m";
+		public const string Strikethrough = $"{EscapeCode}[9m";
+
+		public const string Black = $"{EscapeCode}[{Foreground}0m";
+		public const string Red = $"{EscapeCode}[{Foreground}1m";
+		public const string Green = $"{EscapeCode}[{Foreground}2m";
+		public const string Yellow = $"{EscapeCode}[{Foreground}3m";
+		public const string DarkBlue = $"{EscapeCode}[{Foreground}4m";
+		public const string Magenta = $"{EscapeCode}[{Foreground}5m";
+		public const string Cyan = $"{EscapeCode}[{Foreground}6m";
+		public const string Gray = $"{EscapeCode}[{Foreground}7m";
+		public const string DarkGray = $"{EscapeCode}[{Foreground}8m";
+		public const string LightRed = $"{EscapeCode}[{Foreground}9m";
+		public const string LightGreen = $"{EscapeCode}[{Foreground}10m";
+		public const string LightYellow = $"{EscapeCode}[{Foreground}11m";
+		public const string Blue = $"{EscapeCode}[{Foreground}12m";
+		public const string Pink = $"{EscapeCode}[{Foreground}13m";
+		public const string LightBlue = $"{EscapeCode}[{Foreground}14m";
+		public const string White = $"{EscapeCode}[{Foreground}15m";
+
 		private static bool createLogFile = true;
 		private static ushort maxLogFiles = 5;
 		private static string logDirectory = string.Empty;
@@ -59,6 +86,14 @@ namespace USharpLibs.Common.IO {
 		public static bool PrintMethod { private get; set; } = true;
 		/// <summary> Whether or not to include the line number in the formatted log prefix. </summary>
 		public static bool PrintLine { private get; set; } = true;
+		/// <summary> Whether or not to print Ansi color codes in the formatted log prefix. </summary>
+		public static bool UseAnsiColor { private get; set; } = true;
+
+		public static string DebugAnsi { internal get; set; } = Gray;
+		public static string InfoAnsi { internal get; set; } = White;
+		public static string WarningAnsi { internal get; set; } = Yellow;
+		public static string ErrorAnsi { internal get; set; } = LightRed;
+		public static string FatalAnsi { internal get; set; } = Red;
 
 		private static LoggerWritter? loggerWritter;
 		private static bool wasInitRun;
@@ -194,6 +229,7 @@ namespace USharpLibs.Common.IO {
 		[MethodImpl(MethodImplOptions.NoInlining)]
 		private static string AddPrefix(WarningLevel level, string? message, byte stackTraceLevel = 5) {
 			StringBuilder sb = new();
+			if (UseAnsiColor) { sb.Append(level.ToAnsi()); }
 			if (PrintTimeStamp) { sb.Append($"[{DateTime.Now:HH:mm:ss:fff}] "); }
 			if (PrintSeverity) { sb.Append($"[{level}] "); }
 			if (PrintThreadName) {
@@ -236,7 +272,10 @@ namespace USharpLibs.Common.IO {
 				sb.Append("] ");
 			}
 
-			return sb.Append(message ?? string.Empty).ToString();
+			sb.Append(message);
+			if (UseAnsiColor) { sb.Append(Reset); }
+
+			return sb.ToString();
 		}
 
 		private sealed class LoggerWritter : StreamWriter {
@@ -291,6 +330,18 @@ namespace USharpLibs.Common.IO {
 			[MethodImpl(MethodImplOptions.NoInlining)]
 			public override void WriteLine(ulong value) => WriteLine(WarningLevel.Debug, value.ToString());
 		}
+	}
+
+	internal static class WarningLevelExtensions {
+		public static string ToAnsi(this WarningLevel level) =>
+				level switch {
+						WarningLevel.Debug => Logger.DebugAnsi,
+						WarningLevel.Info => Logger.InfoAnsi,
+						WarningLevel.Warning => Logger.WarningAnsi,
+						WarningLevel.Error => Logger.ErrorAnsi,
+						WarningLevel.Fatal => Logger.FatalAnsi,
+						_ => throw new ArgumentOutOfRangeException(nameof(level), level, null),
+				};
 	}
 
 	public enum WarningLevel : byte {
