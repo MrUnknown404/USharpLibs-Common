@@ -95,7 +95,7 @@ namespace USharpLibs.Common.IO {
 		public static string ErrorAnsi { internal get; set; } = LightRed;
 		public static string FatalAnsi { internal get; set; } = Red;
 
-		private static LoggerWritter? loggerWritter;
+		private static LoggerWriter? loggerWriter;
 		private static bool wasInitRun;
 
 		public static void Init(string startingMessage = "") {
@@ -103,9 +103,9 @@ namespace USharpLibs.Common.IO {
 
 			if (CreateLogFile) { LogDirectory = Directory.CreateDirectory("Logs").FullName; }
 
-			loggerWritter = new(Console.Out, new FileStream($"Logs/{DateTime.Now.ToString(LogDateFormat)}.log", FileMode.Create));
-			Console.SetOut(loggerWritter);
-			Console.SetError(loggerWritter);
+			loggerWriter = new(Console.Out, new FileStream($"Logs/{DateTime.Now.ToString(LogDateFormat)}.log", FileMode.Create));
+			Console.SetOut(loggerWriter);
+			Console.SetError(loggerWriter);
 			AppDomain.CurrentDomain.UnhandledException += (_, args) => PrintException((Exception)args.ExceptionObject, 5);
 
 			if (!string.IsNullOrEmpty(startingMessage)) { Info(startingMessage); }
@@ -154,12 +154,12 @@ namespace USharpLibs.Common.IO {
 
 		[MethodImpl(MethodImplOptions.NoInlining)]
 		private static void Debug(string? message, byte stackTraceLevel) {
-			if (loggerWritter == null) {
+			if (loggerWriter == null) {
 				Console.WriteLine(message);
 				return;
 			}
 
-			loggerWritter.WriteLine(WarningLevel.Debug, message, stackTraceLevel);
+			loggerWriter.WriteLine(WarningLevel.Debug, message, stackTraceLevel);
 		}
 
 		[MethodImpl(MethodImplOptions.NoInlining)]
@@ -170,12 +170,12 @@ namespace USharpLibs.Common.IO {
 
 		[MethodImpl(MethodImplOptions.NoInlining)]
 		private static void Info(string? message, byte stackTraceLevel) {
-			if (loggerWritter == null) {
+			if (loggerWriter == null) {
 				Console.WriteLine(message);
 				return;
 			}
 
-			loggerWritter.WriteLine(WarningLevel.Info, message, stackTraceLevel);
+			loggerWriter.WriteLine(WarningLevel.Info, message, stackTraceLevel);
 		}
 
 		[MethodImpl(MethodImplOptions.NoInlining)]
@@ -186,12 +186,12 @@ namespace USharpLibs.Common.IO {
 
 		[MethodImpl(MethodImplOptions.NoInlining)]
 		private static void Warn(string? message, byte stackTraceLevel) {
-			if (loggerWritter == null) {
+			if (loggerWriter == null) {
 				Console.WriteLine(message);
 				return;
 			}
 
-			loggerWritter.WriteLine(WarningLevel.Warning, message, stackTraceLevel);
+			loggerWriter.WriteLine(WarningLevel.Warning, message, stackTraceLevel);
 		}
 
 		[MethodImpl(MethodImplOptions.NoInlining)]
@@ -202,12 +202,12 @@ namespace USharpLibs.Common.IO {
 
 		[MethodImpl(MethodImplOptions.NoInlining)]
 		private static void Error(string? message, byte stackTraceLevel) {
-			if (loggerWritter == null) {
+			if (loggerWriter == null) {
 				Console.WriteLine(message);
 				return;
 			}
 
-			loggerWritter.WriteLine(WarningLevel.Error, message, stackTraceLevel);
+			loggerWriter.WriteLine(WarningLevel.Error, message, stackTraceLevel);
 		}
 
 		[MethodImpl(MethodImplOptions.NoInlining)]
@@ -218,12 +218,12 @@ namespace USharpLibs.Common.IO {
 
 		[MethodImpl(MethodImplOptions.NoInlining)]
 		private static void Fatal(string? message, byte stackTraceLevel) {
-			if (loggerWritter == null) {
+			if (loggerWriter == null) {
 				Console.WriteLine(message);
 				return;
 			}
 
-			loggerWritter.WriteLine(WarningLevel.Fatal, message, stackTraceLevel);
+			loggerWriter.WriteLine(WarningLevel.Fatal, message, stackTraceLevel);
 		}
 
 		[MethodImpl(MethodImplOptions.NoInlining)]
@@ -278,11 +278,11 @@ namespace USharpLibs.Common.IO {
 			return sb.ToString();
 		}
 
-		private sealed class LoggerWritter : StreamWriter {
+		private sealed class LoggerWriter : StreamWriter {
 			public override Encoding Encoding => Encoding.UTF8;
 			private readonly TextWriter console;
 
-			public LoggerWritter(TextWriter console, Stream file) : base(file) {
+			public LoggerWriter(TextWriter console, Stream file) : base(file) {
 				this.console = console;
 				AutoFlush = true;
 			}
