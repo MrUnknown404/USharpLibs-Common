@@ -1,5 +1,3 @@
-using JetBrains.Annotations;
-
 namespace USharpLibs.Common.Math {
 	[PublicAPI]
 	public static class MathH {

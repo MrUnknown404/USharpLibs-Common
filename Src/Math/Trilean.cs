@@ -1,5 +1,3 @@
-using JetBrains.Annotations;
-
 namespace USharpLibs.Common.Math {
 	// TODO redo this way nicer
 	public enum Trilean : byte {

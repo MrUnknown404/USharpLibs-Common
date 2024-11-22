@@ -1,5 +1,4 @@
 using System.Collections;
-using JetBrains.Annotations;
 
 namespace USharpLibs.Common.Collections {
 	// This could probably be more efficient?

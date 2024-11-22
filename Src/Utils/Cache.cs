@@ -1,5 +1,3 @@
-using JetBrains.Annotations;
-
 namespace USharpLibs.Common.Utils {
 	[PublicAPI]
 	public class Cache<K, V> where K : notnull {

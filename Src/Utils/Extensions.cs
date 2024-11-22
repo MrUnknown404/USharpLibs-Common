@@ -1,5 +1,4 @@
 using System.Drawing;
-using JetBrains.Annotations;
 
 namespace USharpLibs.Common.Utils {
 	[PublicAPI]

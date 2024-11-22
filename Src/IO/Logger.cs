@@ -3,7 +3,6 @@ using System.Globalization;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
-using JetBrains.Annotations;
 
 namespace USharpLibs.Common.IO {
 	/// <summary>
