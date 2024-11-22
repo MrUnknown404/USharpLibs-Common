@@ -43,6 +43,6 @@ namespace USharpLibs.Common.Utils {
 
 	[PublicAPI]
 	public static class ColorExtension {
-		public static string ToHex(this Color self) => $"#{self.R:X2}{self.G:X2}{self.B:X2}";
+		[MustUseReturnValue] public static string ToHex(this Color self) => $"#{self.R:X2}{self.G:X2}{self.B:X2}";
 	}
 }

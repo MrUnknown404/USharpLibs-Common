@@ -288,8 +288,8 @@ namespace USharpLibs.Common.IO {
 			}
 
 			[MethodImpl(MethodImplOptions.NoInlining)]
-			public void WriteLine(WarningLevel level, string? value, byte stackTracelevel = 5) {
-				string newString = AddPrefix(level, value, stackTracelevel);
+			public void WriteLine(WarningLevel level, string? value, byte stackTraceLevel = 5) {
+				string newString = AddPrefix(level, value, stackTraceLevel);
 
 				if (CreateLogFile) { base.WriteLine(newString); }
 				console.WriteLine(newString);
