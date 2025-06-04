@@ -1,14 +1,19 @@
+using System.Numerics;
+using JetBrains.Annotations;
+
 namespace USharpLibs.Common.Math {
+	internal static class MathInternal<T> where T : INumber<T> {
+		public static T _180 { get; } = T.CreateChecked(180);
+	}
+
 	[PublicAPI]
 	public static class MathH {
 		public const float Sqrt2 = 1.41421356237f;
 		public const float Sqrt3 = 1.73205080757f;
 		public const float HalfSqrt3 = Sqrt3 / 2f;
 
-		[Pure] public static double ToRadians(double degrees) => degrees * System.Math.PI / 180d;
-		[Pure] public static double ToDegrees(double rads) => rads * 180d / System.Math.PI;
-		[Pure] public static float ToRadians(float degrees) => degrees * MathF.PI / 180f;
-		[Pure] public static float ToDegrees(float rads) => rads * 180f / MathF.PI;
+		[Pure] public static T ToRadians<T>(T degrees) where T : IFloatingPoint<T> => degrees * T.Pi / MathInternal<T>._180;
+		[Pure] public static T ToDegrees<T>(T rads) where T : IFloatingPoint<T> => rads * MathInternal<T>._180 / T.Pi;
 
 		[Pure] public static int Floor(float value) => (int)MathF.Floor(value);
 		[Pure] public static long Floor(double value) => (long)System.Math.Floor(value);
@@ -25,8 +30,7 @@ namespace USharpLibs.Common.Math {
 		[Pure] public static long Round(double value, MidpointRounding rounding) => (long)System.Math.Round(value, rounding);
 		[Pure] public static int Round(decimal value, MidpointRounding rounding) => (int)System.Math.Round(value, rounding);
 
-		[Pure] public static float Lerp(float from, float to, float alpha) => from * (1f - alpha) + to * alpha;
-		[Pure] public static double Lerp(double from, double to, double alpha) => from * (1d - alpha) + to * alpha;
+		[Pure] public static T Lerp<T>(T from, T to, T alpha) where T : IFloatingPoint<T> => from * (T.One - alpha) + to * alpha;
 
 		[Pure] public static ushort BytesToUShort(byte byte0, byte byte1) => (ushort)((byte0 << 8) + byte1);
 		[Pure] public static short BytesToShort(byte byte0, byte byte1) => (short)((byte0 << 8) + byte1);

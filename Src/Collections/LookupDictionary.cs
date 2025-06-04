@@ -1,4 +1,5 @@
 using System.Collections;
+using JetBrains.Annotations;
 
 namespace USharpLibs.Common.Collections {
 	// This could probably be more efficient?
@@ -7,9 +8,9 @@ namespace USharpLibs.Common.Collections {
 		private Dictionary<L, K> LookupDict { get; } = new();
 		private Dictionary<K, V> ValueDict { get; } = new();
 
-		private IEnumerable<L> Lookups => LookupDict.Keys;
-		private IEnumerable<K> Keys => ValueDict.Keys;
-		private IEnumerable<V> Values => ValueDict.Values;
+		public IEnumerable<L> Lookups => LookupDict.Keys;
+		public IEnumerable<K> Keys => ValueDict.Keys;
+		public IEnumerable<V> Values => ValueDict.Values;
 
 		public int Count => ValueDict.Count;
 

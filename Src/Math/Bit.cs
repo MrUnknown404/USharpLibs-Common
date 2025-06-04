@@ -1,8 +1,9 @@
 using System.Runtime.InteropServices;
+using JetBrains.Annotations;
 
 namespace USharpLibs.Common.Math {
 	[PublicAPI]
-	[StructLayout(LayoutKind.Sequential)]
+	[StructLayout(LayoutKind.Sequential, Pack = 0)]
 	public readonly record struct Bit : IComparable<Bit> {
 		public static Bit Zero => 0;
 		public static Bit One => 1;

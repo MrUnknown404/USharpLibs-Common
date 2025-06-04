@@ -1,4 +1,5 @@
 using System.Drawing;
+using JetBrains.Annotations;
 
 namespace USharpLibs.Common.Utils {
 	[PublicAPI]
@@ -34,8 +35,6 @@ namespace USharpLibs.Common.Utils {
 	[PublicAPI]
 	public static class EnumerableExtension {
 		public static void ForEach<T>(this IEnumerable<T> source, Action<T> action) {
-			if (action == null) { throw new ArgumentNullException(nameof(action)); }
-
 			foreach (T item in source) { action(item); }
 		}
 	}
