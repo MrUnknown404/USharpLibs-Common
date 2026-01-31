@@ -6,6 +6,7 @@ namespace USharpLibs.Common.Utils {
 	public static class Extensions {
 		extension<T>(ICollection<T> self) {
 			[MustUseReturnValue] public string GetSizeAndElementsAsString() => $"Size:{self.Count}, Elements:[{string.Join(", ", self)}]";
+			[MustUseReturnValue] public string ElementsAsString() => self.Count == 0 ? "[ ]" : $"[ {string.Join(", ", self)} ]";
 		}
 
 		extension(Color self) {
