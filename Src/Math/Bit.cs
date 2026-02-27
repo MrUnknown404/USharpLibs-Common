@@ -34,7 +34,7 @@ namespace USharpLibs.Common.Math {
 		public static Bit operator &(Bit value1, Bit value2) => new(value1.Value & value2.Value);
 		public static Bit operator ^(Bit value1, Bit value2) => new(value1.Value ^ value2.Value);
 		public static Bit operator ~(Bit value) => new(!value.Value);
-		public static Bit operator !(Bit value) => ~value;
+		public static Bit operator !(Bit value) => new(~value);
 
 		public static bool operator true(Bit value) => value.Value;
 		public static bool operator false(Bit value) => value.Value;
