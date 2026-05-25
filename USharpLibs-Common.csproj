@@ -8,7 +8,7 @@
 		<WarningsAsErrors>nullable</WarningsAsErrors>
 		<RootNamespace>USharpLibs.Common</RootNamespace>
 		<AssemblyName>USharpLibs.Common</AssemblyName>
-		<DebugType>embedded</DebugType>
+		<DebugType Condition="'$(Configuration)' == 'Release'">none</DebugType>
 	</PropertyGroup>
 
 	<!-- Includes -->
