@@ -22,7 +22,7 @@ public readonly record struct UInt24 : IComparable<UInt24> {
 
 	public static implicit operator UInt24(uint value) => new(value);
 
-	// public static UInt24 operator +(UInt24 left, UInt24 right) => new(left.Value + right.Value);
+	public static UInt24 operator +(UInt24 left, UInt24 right) => new(left.Value + right.Value);
 	public static UInt24 operator -(UInt24 left, UInt24 right) => new(left.Value - right.Value);
 	public static UInt24 operator *(UInt24 left, UInt24 right) => new(left.Value * right.Value);
 	public static UInt24 operator /(UInt24 left, UInt24 right) => new(left.Value / right.Value);

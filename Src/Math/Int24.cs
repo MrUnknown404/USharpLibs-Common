@@ -21,7 +21,7 @@ public readonly record struct Int24 : IComparable<Int24> {
 
 	public static implicit operator Int24(int value) => new(value);
 
-	// public static UInt24 operator +(UInt24 left, UInt24 right) => new(left.Value + right.Value);
+	public static Int24 operator +(Int24 left, Int24 right) => new(left.Value + right.Value);
 	public static Int24 operator -(Int24 left, Int24 right) => new(left.Value - right.Value);
 	public static Int24 operator *(Int24 left, Int24 right) => new(left.Value * right.Value);
 	public static Int24 operator /(Int24 left, Int24 right) => new(left.Value / right.Value);
