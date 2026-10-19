@@ -4,8 +4,8 @@ public readonly record struct Int24 : IComparable<Int24> {
 	public const int MinValue = 0x800000;
 	public const int MaxValue = 0x7FFFFF;
 
-	public static Int24 One => new(0);
 	public static Int24 Zero => new(0);
+	public static Int24 One => new(1);
 
 	private readonly byte byte0;
 	private readonly byte byte1;
