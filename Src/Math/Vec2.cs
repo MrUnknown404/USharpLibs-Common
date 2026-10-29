@@ -13,6 +13,8 @@ public readonly record struct Vec2<T> where T : INumber<T> {
 		Y = y;
 	}
 
+	public Vec2(T value) : this(value, value) { }
+
 	public void Deconstruct(out T x, out T y) {
 		x = X;
 		y = Y;

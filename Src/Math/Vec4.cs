@@ -20,6 +20,7 @@ public readonly record struct Vec4<T> where T : INumber<T> {
 	public Vec4(Vec2<T> vec, T z, T w) : this(vec.X, vec.Y, z, w) { }
 	public Vec4(Vec2<T> vec0, Vec2<T> vec1) : this(vec0.X, vec0.Y, vec1.X, vec1.Y) { }
 	public Vec4(Vec3<T> vec, T w) : this(vec.X, vec.Y, vec.Z, w) { }
+	public Vec4(T value) : this(value, value, value, value) { }
 
 	public void Deconstruct(out T x, out T y, out T z, out T w) {
 		x = X;
